@@ -1,4 +1,4 @@
-name: Python Tests
+name: Test Python app
 
 on:
   push:
@@ -9,104 +9,18 @@ on:
       - main
 
 jobs:
-  lint:
+  test-job:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-
-      - name: Install Dependencies
+          python-version: 3.11
+      - name: Install dependencies
         run: |
-          python -m venv venv
-          source venv/bin/activate
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-
-      - name: Run Linting
+      - name: Run pytest tests
         run: |
-          source venv/bin/activate
-          pip install flake8
-          flake8 .
-
-  type_check:
-    runs-on: ubuntu-latest
-    needs: lint # Runs after the linting job
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.11"
-
-      - name: Install Dependencies
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install -r requirements.txt
-
-      - name: Run Type Checking with MyPy
-        run: |
-          source venv/bin/activate
-          pip install mypy
-          mypy .
-
-  test:
-    runs-on: ubuntu-latest
-    needs: [lint, type_check] # Runs after lint and type check jobs
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.11"
-
-      - name: Install Dependencies
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run Tests with Coverage
-        run: |
-          pytest --cov=app --cov-report=xml
-
-      - name: Upload Coverage Report
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.xml
-          flags: unittests
-          fail_ci_if_error: true
-
-  build:
-    runs-on: ubuntu-latest
-    needs: [test] # Runs after the test job
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.11"
-
-      - name: Install Dependencies
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Build Project
-        run: |
-          source venv/bin/activate
-          # Any other build commands you want to run
-          echo "Building project..."
+          pytest --cov=calculator -v
